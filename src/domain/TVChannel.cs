@@ -25,25 +25,46 @@ public class TVChannel
     public IReadOnlyCollection<TVShow> Shows => _shows.AsReadOnly();
 
     /// <summary>
-    /// Додає нову передачу до списку, якщо вона не перетинається за часом з існуючими.
+    /// Додає нову передачу до розкладу, перевіряючи її на відсутність часових конфліктів.
     /// </summary>
-    /// <param name="newShow">Передача для додавання.</param>
-    /// <returns>Result із доданою передачею або повідомленням про помилку.</returns>
+    /// <param name="newShow">Об'єкт передачі для додавання.</param>
+    /// <returns>Результат операції: Success у разі успіху або Failure з описом колізії.</returns>
     public Result<TVShow> AddShow(TVShow newShow)
     {
-        // Перевірка умови перетину: (Start1 < End2) && (Start2 < End1)
-        bool hasOverlap = _shows.Any(existingShow => 
+        // Перевірка на колізії за формулою:
+        // (StartA < EndB) && (StartB < EndA)
+        var conflict = _shows.FirstOrDefault(existingShow => 
             newShow.StartTime < existingShow.EndTime && 
             existingShow.StartTime < newShow.EndTime);
-
-        if (hasOverlap)
+    
+        if (conflict is not null)
         {
-            return new Result<TVShow>.Failure("Час передачі перетинається з уже існуючою програмою.");
+            return new Result<TVShow>.Failure(
+                $"Конфлікт розкладу: передача '{newShow.Title}' перетинається з " +
+                $"'{conflict.Title}' ({conflict.StartTime:HH:mm} - {conflict.EndTime:HH:mm})."
+            );
         }
-
+    
         _shows.Add(newShow);
-        _shows.Sort(); // Автоматичне сортування завдяки IComparable в TVShow
-
+            
+        // Автоматичне сортування завдяки реалізації IComparable в TVShow
+        _shows.Sort();
+    
         return new Result<TVShow>.Success(newShow);
+    }
+    
+        /// <summary>
+        /// Видаляє передачі з внутрішньої колекції за їхніми унікальними ідентифікаторами.
+        /// </summary>
+        /// <param name="ids">Перелік ідентифікаторів (Guid) передач, які потрібно видалити.</param>
+        /// <returns>True, якщо хоча б одна передача була видалена; інакше — False.</returns>
+    public bool RemoveShows(IEnumerable<Guid> ids)
+    {
+        int initialCount = _shows.Count;
+            
+        // Видалення всіх елементів, чий Id міститься у вхідному списку ідентифікаторів
+        _shows.RemoveAll(s => ids.Contains(s.Id));
+    
+        return _shows.Count < initialCount;
     }
 }
