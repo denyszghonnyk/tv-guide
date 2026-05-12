@@ -1,32 +1,35 @@
-namespace TVProgram.UI.Messages;
-
+using System;
 using TVProgram.Domain;
+
+namespace TVProgram.UI.Messages;
 
 /// <summary>
 /// Базовий запис для всіх повідомлень (інтентів), що змінюють стан системи.
 /// </summary>
-public abstract record Msg;
+public abstract record Msg
+{
 
 /// <summary>Завантажити дані каналу.</summary>
-public sealed record LoadChannel(TVChannel Channel) : Msg;
+    public sealed record LoadChannel(TVChannel Channel) : Msg;
 
 /// <summary>Перейти в режим вибору елементів.</summary>
-public sealed record EnterSelectionMode : Msg;
+     public sealed record EnterSelectionMode : Msg;
 
 /// <summary>Перемкнути стан вибору для конкретної передачі.</summary>
-public sealed record ToggleShowSelection(Guid Id) : Msg;
+    public sealed record ToggleShowSelection(Guid Id) : Msg;
 
 /// <summary>Підтвердити видалення обраних елементів.</summary>
-public sealed record ConfirmDeletion : Msg;
+    public sealed record ConfirmDeletion : Msg;
 
 /// <summary>Скасувати поточну дію та повернутися на головний екран.</summary>
-public sealed record Cancel : Msg;
+    public sealed record Cancel : Msg;
 
 /// <summary>Розпочати створення нової передачі.</summary>
-public sealed record CreateNewShow : Msg;
+    public sealed record CreateNewShow : Msg;
 
 /// <summary>Зберегти зміни у передачі.</summary>
-public sealed record SubmitSave(TVShow Show) : Msg;
+     public sealed record SubmitSave(TVShow Show) : Msg;
 
 /// <summary>Закрити повідомлення про помилку.</summary>
-public sealed record DismissError : Msg;
+    public sealed record DismissError : Msg;
+}

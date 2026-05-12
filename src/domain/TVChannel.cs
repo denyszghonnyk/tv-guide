@@ -1,6 +1,9 @@
-using TVProgram.Domain.Common;
+using TVProgram.Domain;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace TVProgram.Domain.Entities;
+namespace TVProgram.Domain;
 
 /// <summary>
 /// Представляє телеканал, що містить список запланованих передач.

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
-using ReactiveUI;
+using TVProgram.Domain;
+using TVProgram.UI.States;
+using TVProgram.UI.Messages;
 
+namespace TVProgram.UI.Logic;
 /// <summary>
 /// Статичний клас, що містить чисту функцію оновлення стану (Update).
 /// Відповідає за бізнес-логіку переходів між станами програми без побічних ефектів.
@@ -83,84 +84,4 @@ public static class UIUpdater
         UIState.Editor e => 1,
         _ => 0
     };
-}
-
-/// <summary>
-/// ViewModel головного вікна, що реалізує патерн MVU.
-/// Зберігає поточний стан, забезпечує диспетчеризацію повідомлень та персистентність даних.
-/// </summary>
-public class MainWindowViewModel : ReactiveObject
-{
-    private const string DataPath = "program.json";
-    private UIState _currentState;
-
-    /// <summary>
-    /// Поточний стан інтерфейсу. Зміна цієї властивості ініціює оновлення UI в Avalonia.
-    /// </summary>
-    public UIState CurrentState
-    {
-        get => _currentState;
-        set => this.RaiseAndSetIfChanged(ref _currentState, value);
-    }
-
-    /// <summary>
-    /// Конструктор: завантажує дані з JSON або створює новий канал, ініціалізуючи початковий стан.
-    /// </summary>
-    public MainWindowViewModel()
-    {
-        TVChannel channel;
-        try
-        {
-            if (File.Exists(DataPath))
-            {
-                var json = File.ReadAllText(DataPath);
-                channel = JsonSerializer.Deserialize<TVChannel>(json) ?? new TVChannel();
-            }
-            else
-            {
-                channel = new TVChannel();
-            }
-        }
-        catch
-        {
-            channel = new TVChannel();
-        }
-
-        _currentState = new UIState.Home(channel, 0);
-    }
-
-    /// <summary>
-    /// Єдина точка входу для обробки подій користувача. 
-    /// Оновлює стан та автоматично зберігає зміни в файл при зміні версії даних.
-    /// </summary>
-    /// <param name="msg">Повідомлення (команда), яку потрібно виконати.</param>
-    public void Dispatch(Msg msg)
-    {
-        var oldState = CurrentState;
-        var newState = UIUpdater.Update(oldState, msg);
-
-        CurrentState = newState;
-
-        // Логіка персистентності: зберігаємо, якщо ми на Home і версія даних змінилася
-        if (newState is UIState.Home newHome && 
-           (oldState is not UIState.Home oldHome || newHome.Version != oldHome.Version))
-        {
-            SaveToJson(newHome.Channel);
-        }
-    }
-
-    private void SaveToJson(TVChannel channel)
-    {
-        try
-        {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(channel, options);
-            File.WriteAllText(DataPath, json);
-        }
-        catch
-        {
-            // У MVU логіці помилки IO зазвичай обробляються через диспетчеризацію Msg.Error,
-            // але тут ми дотримуємося вимоги "без Exceptions" для стабільності ViewModel.
-        }
-    }
 }

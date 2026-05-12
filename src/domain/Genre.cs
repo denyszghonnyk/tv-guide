@@ -1,4 +1,4 @@
-namespace TVProgram.Domain.Enums;
+namespace TVProgram.Domain;
 
 /// <summary>
 /// Перелік жанрів телепередач.

@@ -1,4 +1,4 @@
-namespace TVProgram.Domain.Common;
+namespace TVProgram.Domain;
 
 /// <summary>
 /// Базовий запис для представлення результату операції.

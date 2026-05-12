@@ -1,6 +1,8 @@
-using TVProgram.Domain.Enums;
+using TVProgram.Domain;
+using System;
+using System.Collections.Generic;
 
-namespace TVProgram.Domain.Entities;
+namespace TVProgram.Domain;
 
 /// <summary>
 /// Представляє окрему телевізійну передачу.
