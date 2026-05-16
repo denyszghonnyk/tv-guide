@@ -70,7 +70,7 @@ internal static class UIUpdater
     };
 
     // Обробка видалення вибраних передач з активного каналу
-    private static UIState HandleDeletion(UIState.Selection sel)
+    private static UIState.Home HandleDeletion(UIState.Selection sel)
     {
         var activeChannel = sel.RootData.Channels.FirstOrDefault(c => c.Id == sel.ActiveChannelId);
         if (activeChannel == null) return new UIState.Home(sel.RootData, sel.ActiveChannelId, 1);
@@ -129,7 +129,7 @@ internal static class UIUpdater
     };
 
     // Створення нового телеканалу та автоматичний вибір його у формі редактора
-    private static UIState HandleAddChannel(UIState.Editor state, string name)
+    private static UIState.Editor HandleAddChannel(UIState.Editor state, string name)
     {
         var newChannel = new TVChannel { Id = Guid.NewGuid(), Name = name, Shows = new List<TVShow>() };
         var newChannels = state.RootData.Channels.Append(newChannel).ToList();

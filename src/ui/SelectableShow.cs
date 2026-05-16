@@ -7,7 +7,7 @@ namespace TVProgram.UI.ViewModels;
 /// разом із її станом виділення (для списків з CheckBox).
 /// Запобігає повному перемальовуванню списків Avalonia завдяки кастомній реалізації Equals.
 /// </summary>
-internal class SelectableShow
+internal sealed class SelectableShow
 {
     public TVShow Show { get; }
     public bool IsSelected { get; }

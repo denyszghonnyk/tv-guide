@@ -1,3 +1,4 @@
+#pragma warning disable CA2007, CA1031
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +22,7 @@ namespace TVProgram.UI.ViewModels;
 /// Головна View Model застосунку. 
 /// Виступає мостом між імутабельним ядром (MVU State) та реактивним інтерфейсом Avalonia (Data Binding).
 /// </summary>
-internal partial class MainWindowViewModel : ObservableObject
+internal sealed partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty]
     public partial string CurrentFilePath { get; set; } = "tv_program.json";

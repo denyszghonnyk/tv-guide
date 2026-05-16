@@ -8,7 +8,7 @@ namespace TVProgram.Domain;
 /// <summary>
 /// Кореневий агрегат застосунку (містить усі канали та налаштування користувача).
 /// </summary>
-internal record TVGuideRoot
+internal sealed record TVGuideRoot
 {
     // Список усіх телекомпаній
     public List<TVChannel> Channels { get; init; } = new();

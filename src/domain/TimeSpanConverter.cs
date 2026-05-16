@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 /// Кастомний конвертер для забезпечення коректної серіалізації (Serialization) 
 /// та десеріалізації (Deserialization) об'єктів типу <see cref="TimeSpan"/> у JSON-формат.
 /// </summary>
-internal class TimeSpanConverter : JsonConverter<TimeSpan>
+internal sealed class TimeSpanConverter : JsonConverter<TimeSpan>
 {
     /// <summary>
     /// Зчитує текстовий токен JSON та конвертує (десеріалізує) його у валидне значення <see cref="TimeSpan"/>.
@@ -16,7 +16,7 @@ internal class TimeSpanConverter : JsonConverter<TimeSpan>
     /// <param name="options">Глобальні конфігураційні налаштування серіалізатора <see cref="JsonSerializerOptions"/>.</param>
     /// <returns>Відновлений об'єкт типу <see cref="TimeSpan"/>.</returns>
     public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => TimeSpan.Parse(reader.GetString()!);
+            => TimeSpan.Parse(reader.GetString()!, System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Конвертує (серіалізує) поточне значення структури <see cref="TimeSpan"/> у строковий формат для запису в JSON-файл.

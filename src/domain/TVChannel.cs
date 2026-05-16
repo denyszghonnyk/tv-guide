@@ -8,7 +8,7 @@ namespace TVProgram.Domain;
 /// <summary>
 /// Представляє телеканал, що містить розклад запланованих передач та керує ними.
 /// </summary>
-internal record TVChannel
+internal sealed record TVChannel
 {
     private readonly List<TVShow> _shows = new();
 
