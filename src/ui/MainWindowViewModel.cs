@@ -9,10 +9,10 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TVProgram.Domain; 
-using TVProgram.UI.Logic; 
-using TVProgram.UI.States; 
-using TVProgram.UI.Messages; 
+using TVProgram.Domain;
+using TVProgram.UI.Logic;
+using TVProgram.UI.States;
+using TVProgram.UI.Messages;
 using System.Text.Json.Serialization;
 
 namespace TVProgram.UI.ViewModels;
@@ -21,12 +21,12 @@ namespace TVProgram.UI.ViewModels;
 /// Головна View Model застосунку. 
 /// Виступає мостом між імутабельним ядром (MVU State) та реактивним інтерфейсом Avalonia (Data Binding).
 /// </summary>
-public partial class MainWindowViewModel : ObservableObject
+internal partial class MainWindowViewModel : ObservableObject
 {
-    [ObservableProperty] 
-    private string _currentFilePath = "tv_program.json";
-    
-    private IStorageProvider? GetStorageProvider()
+    [ObservableProperty]
+    public partial string CurrentFilePath { get; set; } = "tv_program.json";
+
+    private static IStorageProvider? GetStorageProvider()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             return desktop.MainWindow?.StorageProvider;
@@ -39,18 +39,18 @@ public partial class MainWindowViewModel : ObservableObject
         PropertyNameCaseInsensitive = true,
         Converters = { new JsonStringEnumConverter(), new TimeSpanConverter() }
     };
-    
-    public IEnumerable<Genre> AvailableGenres => Enum.GetValues<Genre>();
-    
+
+    public static IEnumerable<Genre> AvailableGenres => Enum.GetValues<Genre>();
+
     [ObservableProperty]
-    private Genre _draftGenre = Genre.Новини;
-    
+    public partial Genre DraftGenre { get; set; } = Genre.Новини;
+
     [ObservableProperty]
-    private UIState _currentState;
+    public partial UIState CurrentState { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredShows))]
-    private string _searchQuery = string.Empty;
+    public partial string SearchQuery { get; set; } = string.Empty;
 
     /// <summary>
     /// Обчислювана властивість, що повертає список передач для поточного екрана.
@@ -62,35 +62,35 @@ public partial class MainWindowViewModel : ObservableObject
         {
             TVGuideRoot? root = null;
             Guid? activeId = null;
-    
+
             if (CurrentState is UIState.Home home) { root = home.RootData; activeId = home.ActiveChannelId; }
             else if (CurrentState is UIState.Selection sel) { root = sel.RootData; activeId = sel.ActiveChannelId; }
-    
+
             if (root != null && activeId != null)
             {
                 var activeChannel = root.Channels.FirstOrDefault(c => c.Id == activeId);
                 if (activeChannel == null) return Enumerable.Empty<TVShow>();
-    
+
                 var baseList = activeChannel.Shows.AsEnumerable();
-                
+
                 if (ShowOnlyWatchlist)
                     baseList = baseList.Where(s => root.Watchlist.Contains(s.Id));
-    
+
                 if (string.IsNullOrWhiteSpace(SearchQuery)) return baseList.ToList();
-                
+
                 return baseList.Where(s => s.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
             }
             return Enumerable.Empty<TVShow>();
         }
     }
-    
+
     /// <summary>
     /// Поточний обраний телеканал на головному екрані.
     /// Зміна цієї властивості ініціює подію зміни каналу.
     /// </summary>
     public TVChannel? SelectedChannel
     {
-        get 
+        get
         {
             if (CurrentState is UIState.Home home)
                 return home.RootData.Channels.FirstOrDefault(c => c.Id == home.ActiveChannelId);
@@ -98,7 +98,7 @@ public partial class MainWindowViewModel : ObservableObject
                 return sel.RootData.Channels.FirstOrDefault(c => c.Id == sel.ActiveChannelId);
             return null;
         }
-        set 
+        set
         {
             if (value != null)
             {
@@ -107,28 +107,28 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
     }
-    
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredShows))]
-    private bool _showOnlyWatchlist;
-    
-    [ObservableProperty] 
+    public partial bool ShowOnlyWatchlist { get; set; }
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-    private TVChannel? _draftChannel;
-    
+    public partial TVChannel? DraftChannel { get; set; }
+
     /// <summary>
     /// Список доступних телеканалів для випадаючого списку (ComboBox) у редакторі.
     /// </summary>
-    public IEnumerable<TVChannel> AvailableChannels => 
-        (CurrentState as UIState.Editor)?.RootData.Channels ?? Enumerable.Empty<TVChannel>(); 
-                
-    [ObservableProperty] 
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-    private string _draftTitle = string.Empty;
+    public IEnumerable<TVChannel> AvailableChannels =>
+        (CurrentState as UIState.Editor)?.RootData.Channels ?? Enumerable.Empty<TVChannel>();
 
-    [ObservableProperty] 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    public partial string DraftTitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DraftStartTimeOfDay))]
-    private DateTimeOffset _draftStartTime = DateTimeOffset.Now;
+    public partial DateTimeOffset DraftStartTime { get; set; } = DateTimeOffset.Now;
 
     /// <summary>
     /// Обгортка (Wrapper) над часом початку для сумісності з компонентом TimePicker (Avalonia UI).
@@ -136,14 +136,14 @@ public partial class MainWindowViewModel : ObservableObject
     public TimeSpan? DraftStartTimeOfDay
     {
         get => DraftStartTime.TimeOfDay;
-        set 
+        set
         {
             if (value.HasValue)
             {
                 var date = DraftStartTime.Date;
                 DraftStartTime = new DateTimeOffset(
-                    date.Year, date.Month, date.Day, 
-                    value.Value.Hours, value.Value.Minutes, value.Value.Seconds, 
+                    date.Year, date.Month, date.Day,
+                    value.Value.Hours, value.Value.Minutes, value.Value.Seconds,
                     DraftStartTime.Offset);
                 OnPropertyChanged();
             }
@@ -151,7 +151,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private TimeSpan _draftDuration = TimeSpan.FromMinutes(30);
-    
+
     public TimeSpan DraftDuration
     {
         get => _draftDuration;
@@ -163,7 +163,7 @@ public partial class MainWindowViewModel : ObservableObject
             SaveCommand.NotifyCanExecuteChanged();
         }
     }
-    
+
     /// <summary>
     /// Обгортка (Wrapper) над тривалістю передачі у хвилинах для NumericUpDown.
     /// </summary>
@@ -172,31 +172,31 @@ public partial class MainWindowViewModel : ObservableObject
         get => (decimal)_draftDuration.TotalMinutes;
         set => DraftDuration = TimeSpan.FromMinutes((double)(value ?? 1));
     }
-    
-    [ObservableProperty] 
-    private bool _isAddingChannel;
-    
-    [ObservableProperty] 
-    private string _newChannelName = string.Empty;
-    
+
+    [ObservableProperty]
+    public partial bool IsAddingChannel { get; set; }
+
+    [ObservableProperty]
+    public partial string NewChannelName { get; set; } = string.Empty;
+
     [RelayCommand]
     private void ToggleAddChannel()
     {
         IsAddingChannel = !IsAddingChannel;
         NewChannelName = string.Empty;
     }
-    
+
     [RelayCommand]
     private void SubmitNewChannel()
     {
         if (!string.IsNullOrWhiteSpace(NewChannelName))
         {
             Dispatch(new Msg.AddNewChannel(NewChannelName.Trim()));
-            IsAddingChannel = false; 
+            IsAddingChannel = false;
             NewChannelName = string.Empty;
         }
     }
-        
+
     /// <summary>
     /// Конструктор View Model. Створює початковий базовий стан із дефолтним каналом та намагається завантажити дані.
     /// </summary>
@@ -204,8 +204,8 @@ public partial class MainWindowViewModel : ObservableObject
     {
         var defaultChannel = new TVChannel { Name = "Основний канал" };
         var root = new TVGuideRoot(new List<TVChannel> { defaultChannel }, new HashSet<Guid>());
-        _currentState = new UIState.Home(root, defaultChannel.Id, 0);
-        
+        CurrentState = new UIState.Home(root, defaultChannel.Id, 0);
+
         LoadChannel();
     }
 
@@ -217,14 +217,14 @@ public partial class MainWindowViewModel : ObservableObject
         if (CurrentState is UIState.Editor editor && DraftChannel != null)
         {
             var id = editor.ShowToEdit?.Id ?? Guid.NewGuid();
-            var newShow = new TVShow(id, DraftTitle, DraftStartTime.DateTime, DraftDuration, DraftGenre); 
+            var newShow = new TVShow(id, DraftTitle, DraftStartTime.DateTime, DraftDuration, DraftGenre);
             Dispatch(new Msg.SubmitSave(DraftChannel.Id, newShow));
         }
     }
 
-    private bool CanSave() => 
+    private bool CanSave() =>
             !string.IsNullOrWhiteSpace(DraftTitle) && DraftDuration.TotalMinutes > 0 && DraftChannel != null;
-    
+
     [RelayCommand]
     private async Task OpenFile()
     {
@@ -261,7 +261,7 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             var json = File.ReadAllText(CurrentFilePath);
-            if (string.IsNullOrWhiteSpace(json)) return; 
+            if (string.IsNullOrWhiteSpace(json)) return;
             ProcessLoadedJson(json);
         }
         catch (Exception ex) { Console.WriteLine($"Load error: {ex.Message}"); }
@@ -269,7 +269,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void ProcessLoadedJson(string json)
     {
-        try 
+        try
         {
             if (JsonSerializer.Deserialize<TVGuideRoot>(json, _jsonOptions) is { } root && root.Channels != null)
             {
@@ -280,7 +280,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (JsonException)
         {
-            try 
+            try
             {
                 if (JsonSerializer.Deserialize<TVChannel>(json, _jsonOptions) is { } oldChannel)
                 {
@@ -295,7 +295,7 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
         }
-        
+
         Dispatch(new Msg.ShowError("Файл порожній або містить пошкоджені дані."));
     }
 
@@ -308,11 +308,11 @@ public partial class MainWindowViewModel : ObservableObject
         var options = new FilePickerSaveOptions { Title = "Зберегти як...", DefaultExtension = "json" };
         try
         {
-            var file = await sp.SaveFilePickerAsync(options);
+            var file = await sp.SaveFilePickerAsync(options).ConfigureAwait(false);
             if (file != null)
             {
                 CurrentFilePath = file.Path.LocalPath;
-                await SaveToFile();
+                await SaveToFile().ConfigureAwait(false);
             }
         }
         catch (Exception ex) { Dispatch(new Msg.ShowError(ex.Message)); }
@@ -326,7 +326,7 @@ public partial class MainWindowViewModel : ObservableObject
             try
             {
                 var json = JsonSerializer.Serialize(home.RootData, _jsonOptions);
-                await File.WriteAllTextAsync(CurrentFilePath, json);
+                await File.WriteAllTextAsync(CurrentFilePath, json).ConfigureAwait(false);
             }
             catch (Exception ex) { Dispatch(new Msg.ShowError(ex.Message)); }
         }
@@ -334,18 +334,18 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void EnterSelectionMode() => Dispatch(new Msg.EnterSelectionMode());
-    
+
     [RelayCommand]
     private void ToggleSelection(Guid id) => Dispatch(new Msg.ToggleShowSelection(id));
-    
+
     [RelayCommand]
     private void ConfirmDeletion() => Dispatch(new Msg.ConfirmDeletion());
-    
+
     [RelayCommand]
     private void CreateNewShow() => Dispatch(new Msg.CreateNewShow());
-    
+
     [RelayCommand]
-    private void EditShow(Guid id) 
+    private void EditShow(Guid id)
     {
         if (CurrentState is UIState.Home home)
         {
@@ -362,10 +362,10 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void ToggleWatchlist(Guid id) => Dispatch(new Msg.ToggleWatchlist(id));
-    
+
     [RelayCommand]
     private void Cancel() => Dispatch(new Msg.Cancel());
-    
+
     [RelayCommand]
     private void DismissError() => Dispatch(new Msg.DismissError());
 
@@ -376,9 +376,9 @@ public partial class MainWindowViewModel : ObservableObject
     /// Перетворює доменні сутності <see cref="TVShow"/> на обгортки <see cref="SelectableShow"/> 
     /// зі збереженням статусу виділення (CheckBox) для коректного Data Binding в Avalonia.
     /// </summary>
-    public IEnumerable<SelectableShow> SelectionShows 
+    public IEnumerable<SelectableShow> SelectionShows
     {
-        get 
+        get
         {
             if (CurrentState is UIState.Selection sel)
             {
@@ -387,7 +387,7 @@ public partial class MainWindowViewModel : ObservableObject
             return Enumerable.Empty<SelectableShow>();
         }
     }
-        
+
     /// <summary>
     /// Єдина точка входу для зміни стану (State Management).
     /// Приймає повідомлення (Msg), передає його чистій функції оновлення та повідомляє UI про зміни.
@@ -395,13 +395,13 @@ public partial class MainWindowViewModel : ObservableObject
     private void Dispatch(Msg msg)
     {
         CurrentState = UIUpdater.Update(CurrentState, msg);
-        
+
         OnPropertyChanged(nameof(FilteredShows));
         OnPropertyChanged(nameof(SelectionShows));
-        
+
         HandleStateChange(CurrentState);
     }
-    
+
     /// <summary>
     /// Синхронізує поля форми-редактора з поточним глобальним станом після його оновлення.
     /// </summary>
@@ -410,7 +410,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (state is UIState.Editor editor)
         {
             OnPropertyChanged(nameof(AvailableChannels));
-            
+
             DraftChannel = editor.RootData.Channels.FirstOrDefault(c => c.Id == editor.SourceChannelId);
 
             if (editor.ShowToEdit != null)
@@ -418,7 +418,7 @@ public partial class MainWindowViewModel : ObservableObject
                 DraftTitle = editor.ShowToEdit.Title;
                 DraftStartTime = new DateTimeOffset(editor.ShowToEdit.StartTime);
                 DraftDuration = editor.ShowToEdit.Duration;
-                DraftGenre = editor.ShowToEdit.Genre; 
+                DraftGenre = editor.ShowToEdit.Genre;
             }
             else
             {

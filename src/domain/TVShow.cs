@@ -7,7 +7,7 @@ namespace TVProgram.Domain;
 /// Представляє окрему телевізійну передачу з її атрибутами та часовими характеристиками.
 /// Реалізує інтерфейс <see cref="IComparable{T}"/> для забезпечення автоматичного хронологічного сортування.
 /// </summary>
-public record TVShow : IComparable<TVShow>  
+internal record TVShow : IComparable<TVShow>
 {
     /// <summary>
     /// Ініціалізує новий екземпляр класу <see cref="TVShow"/> із заданими параметрами.
@@ -27,7 +27,7 @@ public record TVShow : IComparable<TVShow>
         this.Duration = Duration;
         this.Genre = Genre;
     }
-    
+
     /// <summary>
     /// Унікальний глобальний ідентифікатор телепередачі (GUID).
     /// </summary>
@@ -75,4 +75,9 @@ public record TVShow : IComparable<TVShow>
         if (other is null) return 1;
         return StartTime.CompareTo(other.StartTime);
     }
+
+    public static bool operator <(TVShow? left, TVShow? right) => left is null ? right is not null : left.CompareTo(right) < 0;
+    public static bool operator <=(TVShow? left, TVShow? right) => left is null || left.CompareTo(right) <= 0;
+    public static bool operator >(TVShow? left, TVShow? right) => left is not null && left.CompareTo(right) > 0;
+    public static bool operator >=(TVShow? left, TVShow? right) => left is null ? right is null : left.CompareTo(right) >= 0;
 }

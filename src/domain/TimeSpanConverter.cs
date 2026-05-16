@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 /// Кастомний конвертер для забезпечення коректної серіалізації (Serialization) 
 /// та десеріалізації (Deserialization) об'єктів типу <see cref="TimeSpan"/> у JSON-формат.
 /// </summary>
-public class TimeSpanConverter : JsonConverter<TimeSpan>
+internal class TimeSpanConverter : JsonConverter<TimeSpan>
 {
     /// <summary>
     /// Зчитує текстовий токен JSON та конвертує (десеріалізує) його у валидне значення <see cref="TimeSpan"/>.

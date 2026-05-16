@@ -8,7 +8,7 @@ namespace TVProgram.Domain;
 /// <summary>
 /// Представляє телеканал, що містить розклад запланованих передач та керує ними.
 /// </summary>
-public record TVChannel
+internal record TVChannel
 {
     private readonly List<TVShow> _shows = new();
 
@@ -26,10 +26,10 @@ public record TVChannel
     /// Список телепередач, закріплених за цим каналом.
     /// При ініціалізації список автоматично сортується за хронологічним порядком.
     /// </summary>
-    public List<TVShow> Shows 
-    { 
-        get => _shows; 
-        init 
+    public List<TVShow> Shows
+    {
+        get => _shows;
+        init
         {
             _shows = value ?? new();
             _shows.Sort();
@@ -40,7 +40,7 @@ public record TVChannel
     /// Ініціалізує новий екземпляр класу <see cref="TVChannel"/> із значеннями за замовчуванням.
     /// </summary>
     public TVChannel() { }
-       
+
     /// <summary>
     /// Ініціалізує новий екземпляр класу <see cref="TVChannel"/> із заданими ідентифікатором, назвою та розкладом.
     /// Використовується для точної десеріалізації даних із JSON.
@@ -55,7 +55,7 @@ public record TVChannel
         Name = name;
         Shows = shows;
     }
-           
+
     /// <summary>
     /// Додає нову передачу до розкладу, перевіряючи її на відсутність часових конфліктів (колізій).
     /// </summary>
@@ -69,9 +69,9 @@ public record TVChannel
         }
 
         var conflict = Shows
-            .Where(s => s.Id != newShow.Id) 
-            .FirstOrDefault(existingShow => 
-                newShow.StartTime < existingShow.EndTime && 
+            .Where(s => s.Id != newShow.Id)
+            .FirstOrDefault(existingShow =>
+                newShow.StartTime < existingShow.EndTime &&
                 existingShow.StartTime < newShow.EndTime);
 
         if (conflict is not null)

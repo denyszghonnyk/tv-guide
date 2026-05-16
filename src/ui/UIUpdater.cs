@@ -11,7 +11,7 @@ namespace TVProgram.UI.Logic;
 /// Статичний клас, що відповідає за центральну логіку керування станом (State Management).
 /// Реалізує чисту функцію оновлення (Update) в архітектурному патерні MVU (Model-View-Update).
 /// </summary>
-public static class UIUpdater
+internal static class UIUpdater
 {
     /// <summary>
     /// Головна чиста функція (Pure Function) застосунку, яка приймає поточний стан системи та повідомлення, 
@@ -23,31 +23,31 @@ public static class UIUpdater
     public static UIState Update(UIState currentState, Msg msg) => (currentState, msg) switch
     {
         // Перехід у режим вибору
-        (UIState.Home home, Msg.EnterSelectionMode) => 
+        (UIState.Home home, Msg.EnterSelectionMode) =>
             new UIState.Selection(home.RootData, home.ActiveChannelId, []),
 
         // Завантаження нових даних
         (UIState.Home _, Msg.LoadData(var root, var activeId)) =>
             new UIState.Home(root, activeId, 1),
-                
+
         // Перемикання вибору для видалення
         (UIState.Selection sel, Msg.ToggleShowSelection(var id)) =>
-            new UIState.Selection(sel.RootData, sel.ActiveChannelId, sel.SelectedIds.Contains(id) 
-                ? sel.SelectedIds.Where(guid => guid != id).ToHashSet() 
+            new UIState.Selection(sel.RootData, sel.ActiveChannelId, sel.SelectedIds.Contains(id)
+                ? sel.SelectedIds.Where(guid => guid != id).ToHashSet()
                 : [.. sel.SelectedIds, id]),
 
         // Підтвердження видалення
         (UIState.Selection sel, Msg.ConfirmDeletion) => HandleDeletion(sel),
-        
+
         // Створення нового каналу з редактора
         (UIState.Editor ed, Msg.AddNewChannel addMsg) => HandleAddChannel(ed, addMsg.Name),
-        
+
         // Відкриття редактора для нової передачі
-        (UIState.Home home, Msg.CreateNewShow) => 
+        (UIState.Home home, Msg.CreateNewShow) =>
             new UIState.Editor(home.RootData, home.ActiveChannelId, home.ActiveChannelId, null),
 
         // Відкриття редактора для існуючої
-        (UIState.Home home, Msg.EditShow edit) => 
+        (UIState.Home home, Msg.EditShow edit) =>
             new UIState.Editor(home.RootData, home.ActiveChannelId, edit.ChannelId, edit.Show),
 
         // Збереження
@@ -99,12 +99,12 @@ public static class UIUpdater
 
         return targetChannel.AddShow(show) switch
         {
-            Result<TVChannel>.Success(var newChannel) => 
+            Result<TVChannel>.Success(var newChannel) =>
                 new UIState.Home(root.UpdateChannel(newChannel), targetChannelId, GetNextVersion(state)),
-            
-            Result<TVChannel>.Failure(var msg) => 
+
+            Result<TVChannel>.Failure(var msg) =>
                 new UIState.Error(msg, state),
-                
+
             _ => state
         };
     }
@@ -125,16 +125,16 @@ public static class UIUpdater
         UIState.Home h => h.Version + 1,
         UIState.Selection s => 1,
         UIState.Editor e => 1,
-        _ => 0   
+        _ => 0
     };
-    
+
     // Створення нового телеканалу та автоматичний вибір його у формі редактора
     private static UIState HandleAddChannel(UIState.Editor state, string name)
     {
         var newChannel = new TVChannel { Id = Guid.NewGuid(), Name = name, Shows = new List<TVShow>() };
         var newChannels = state.RootData.Channels.Append(newChannel).ToList();
         var newRoot = state.RootData with { Channels = newChannels };
-        
+
         return new UIState.Editor(newRoot, state.ActiveChannelId, newChannel.Id, state.ShowToEdit);
     }
 }

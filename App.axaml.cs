@@ -5,7 +5,7 @@ using TVProgram.UI.ViewModels;
 
 namespace TVGuide;
 
-public partial class App : Application
+internal partial class App : Application
 {
     public override void Initialize()
     {

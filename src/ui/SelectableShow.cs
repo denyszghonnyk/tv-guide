@@ -1,4 +1,4 @@
-using TVProgram.Domain; 
+using TVProgram.Domain;
 
 namespace TVProgram.UI.ViewModels;
 
@@ -7,7 +7,7 @@ namespace TVProgram.UI.ViewModels;
 /// разом із її станом виділення (для списків з CheckBox).
 /// Запобігає повному перемальовуванню списків Avalonia завдяки кастомній реалізації Equals.
 /// </summary>
-public class SelectableShow
+internal class SelectableShow
 {
     public TVShow Show { get; }
     public bool IsSelected { get; }

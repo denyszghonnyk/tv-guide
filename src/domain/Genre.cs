@@ -3,7 +3,7 @@ namespace TVProgram.Domain;
 /// <summary>
 /// Перелік жанрів телепередач.
 /// </summary>
-public enum Genre
+internal enum Genre
 {
     Новини,
     Фільми,

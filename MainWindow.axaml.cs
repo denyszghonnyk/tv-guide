@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace TVGuide;
 
-public partial class MainWindow : Window
+internal partial class MainWindow : Window
 {
     public MainWindow()
     {
