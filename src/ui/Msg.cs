@@ -4,32 +4,57 @@ using TVProgram.Domain;
 namespace TVProgram.UI.Messages;
 
 /// <summary>
-/// Базовий запис для всіх повідомлень (інтентів), що змінюють стан системи.
+/// Базовий абстрактний запис для всіх повідомлень (інтентів), що змінюють глобальний стан системи.
 /// </summary>
 public abstract record Msg
 {
+    /// <summary>Перевести інтерфейс у режим вибору елементів для групового видалення.</summary>
+    public sealed record EnterSelectionMode : Msg;
 
-/// <summary>Завантажити дані каналу.</summary>
-    public sealed record LoadChannel(TVChannel Channel) : Msg;
-
-/// <summary>Перейти в режим вибору елементів.</summary>
-     public sealed record EnterSelectionMode : Msg;
-
-/// <summary>Перемкнути стан вибору для конкретної передачі.</summary>
+    /// <summary>Перемкнути стан виділення для конкретної передачі за її ідентифікатором.</summary>
+    /// <param name="Id">Унікальний ідентифікатор телепередачі.</param>
     public sealed record ToggleShowSelection(Guid Id) : Msg;
 
-/// <summary>Підтвердити видалення обраних елементів.</summary>
+    /// <summary>Підтвердити видалення всіх обраних елементів розкладу.</summary>
     public sealed record ConfirmDeletion : Msg;
 
-/// <summary>Скасувати поточну дію та повернутися на головний екран.</summary>
+    /// <summary>Скасувати поточну дію (редагування чи вибір) та повернутися на головний екран.</summary>
     public sealed record Cancel : Msg;
-
-/// <summary>Розпочати створення нової передачі.</summary>
+    
+    /// <summary>Відкрити форму редактора для створення нової телепередачі.</summary>
     public sealed record CreateNewShow : Msg;
 
-/// <summary>Зберегти зміни у передачі.</summary>
-     public sealed record SubmitSave(TVShow Show) : Msg;
-
-/// <summary>Закрити повідомлення про помилку.</summary>
+    /// <summary>Закрити інформаційне вікно помилки та повернутися до попереднього стану.</summary>
     public sealed record DismissError : Msg;
+    
+    /// <summary>Ініціювати відображення повідомлення про помилку з відповідним текстом.</summary>
+    /// <param name="Message">Текст помилки для відображення користувачу.</param>
+    public sealed record ShowError(string Message) : Msg;
+    
+    /// <summary>Перемкнути поточний активний телеканал на головному екрані.</summary>
+    /// <param name="ChannelId">Ідентифікатор цільового телеканалу.</param>
+    public sealed record SwitchChannel(Guid ChannelId) : Msg;
+    
+    /// <summary>Завантажити повну структуру даних (кореневий агрегат) та встановити активний канал.</summary>
+    /// <param name="Root">Кореневий об'єкт телепрограми.</param>
+    /// <param name="ActiveChannelId">Ідентифікатор каналу, який має стати активним.</param>
+    public sealed record LoadData(TVGuideRoot Root, Guid ActiveChannelId) : Msg;
+
+    /// <summary>Перемкнути статус знаходження передачі в персональному списку обраного (Watchlist).</summary>
+    /// <param name="ShowId">Ідентифікатор телепередачі.</param>
+    public sealed record ToggleWatchlist(Guid ShowId) : Msg;
+    
+    /// <summary>Відкрити форму редактора для зміни існуючої телепередачі.</summary>
+    /// <param name="ChannelId">Ідентифікатор каналу, якому належить передача.</param>
+    /// <param name="Show">Об'єкт передачі, яку необхідно відредагувати.</param>
+    public sealed record EditShow(Guid ChannelId, TVShow Show) : Msg;
+
+    /// <summary>Підтвердити та зберегти результати редагування або створення передачі у цільовий канал.</summary>
+    /// <param name="TargetChannelId">Ідентифікатор каналу, куди буде збережено передачу.</param>
+    /// <param name="Show">Об'єкт телепередачі з новими даними.</param>
+    public sealed record SubmitSave(Guid TargetChannelId, TVShow Show) : Msg;
+    
+    /// <summary>Створити новий телеканал із заданою назвою прямо з форми редагування.</summary>
+    /// <param name="Name">Назва нової телекомпанії.</param>
+    public sealed record AddNewChannel(string Name) : Msg;
 }

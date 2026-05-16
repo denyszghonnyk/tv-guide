@@ -6,7 +6,7 @@
         x:Class="TVGuide.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Телепрограма"
-        Width="800" Height="600"
+        Width="1200" Height="750"
         Background="#FFF9EE"
         Foreground="#1E1B13">
 
@@ -15,6 +15,9 @@
         <KeyBinding Gesture="Delete" Command="{Binding EnterSelectionModeCommand}" />
         <KeyBinding Gesture="Ctrl+N" Command="{Binding CreateNewShowCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveToFileCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsCommand}" />
     </Window.KeyBindings>
 
     <Panel Margin="20">
@@ -22,39 +25,99 @@
             <ContentControl.DataTemplates>
 
                 <DataTemplate DataType="states:UIState+Home">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="📺 Розклад передач" FontSize="24" FontWeight="Bold" Foreground="#6D5E0F"/>
-                        <ListBox ItemsSource="{Binding Channel.Shows}" Background="Transparent">
+                    <Grid RowDefinitions="Auto, Auto, Auto, *">
+                        
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,15">
+    
+    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+        <Button Content="📂 Відкрити (Ctrl+O)" 
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenFileCommand}" 
+                Background="#F4EDDF" Foreground="#6D5E0F"/>
+        <Button Content="💾 Зберегти" 
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SaveToFileCommand}" 
+                Background="#F4EDDF" Foreground="#6D5E0F"/>
+        <Button Content="📝 Зберегти як..." 
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SaveAsCommand}" 
+                Background="#F4EDDF" Foreground="#6D5E0F"/>
+        <Button Content="🗑 Режим видалення" 
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EnterSelectionModeCommand}" 
+                Background="#FFDAD6" Foreground="#93000A"/>
+    </StackPanel>
+    
+    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,0,0,0" HorizontalAlignment="Right">
+        <ToggleButton Content="⭐ Обране" 
+                      IsChecked="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowOnlyWatchlist, Mode=TwoWay}"
+                      Background="#F4EDDF" Foreground="#6D5E0F" Margin="0,0,10,0"/>
+        
+        <TextBox Width="200" PlaceholderText="🔍 Пошук за назвою..."
+                 Text="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SearchQuery, Mode=TwoWay}"/>
+    </StackPanel>
+</Grid>
+
+                        <TextBlock Grid.Row="1" Text="📺 Розклад передач" FontSize="24" FontWeight="Bold" Foreground="#6D5E0F" Margin="0,0,0,10"/>
+                        
+                        <TabStrip Grid.Row="2" 
+                                  ItemsSource="{Binding RootData.Channels}" 
+                                  SelectedItem="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectedChannel, Mode=TwoWay}"
+                                  Margin="0,0,0,10">
+                            <TabStrip.ItemTemplate>
+                                <DataTemplate x:DataType="domain:TVChannel">
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Margin="0,0,15,0"/>
+                                </DataTemplate>
+                            </TabStrip.ItemTemplate>
+                        </TabStrip>
+
+                        <ListBox Grid.Row="3" Margin="0,10,0,0" 
+                                 ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).FilteredShows}" 
+                                 Background="Transparent">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="domain:TVShow">
                                     <Border Background="#F4EDDF" Padding="15" CornerRadius="8" Margin="0,5">
-                                        <StackPanel Orientation="Horizontal" Spacing="15">
-                                            <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}" FontWeight="Bold" Foreground="#6D5E0F"/>
-                                            <TextBlock Text="{Binding Title}" FontSize="16" Foreground="#1E1B13"/>
-                                            <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}"
-                                                       VerticalAlignment="Center" Foreground="#4B4739"/>
-                                        </StackPanel>
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}" FontWeight="Bold" Foreground="#6D5E0F"/>
+                                                <TextBlock Text="{Binding Title}" FontSize="16" Foreground="#1E1B13"/>
+                                                <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}" Foreground="#4B4739"/>
+                                                <TextBlock Text="{Binding Genre}" VerticalAlignment="Center" Foreground="#1E1B13"/>
+
+                                                <Button Content="★" 
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleWatchlistCommand}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Background="Transparent"
+                                                        ToolTip.Tip="Запланувати перегляд (В обране)"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2" Content="Редагувати" Background="Transparent"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditShowCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    ToolTip.Tip="Редагувати цю передачу"/>
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                    </StackPanel>
+                    </Grid>
                 </DataTemplate>
 
                 <DataTemplate DataType="states:UIState+Selection">
                     <StackPanel Spacing="15">
                         <TextBlock Text="Виберіть передачі для видалення" FontSize="20" Foreground="#BA1A1A"/>
-                        <ListBox ItemsSource="{Binding Channel.Shows}" Background="Transparent">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="domain:TVShow">
-                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5">
-                                        <CheckBox Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSelectionCommand}"
-                                                  CommandParameter="{Binding Id}" />
-                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Foreground="#1E1B13"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                        <ListBox ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectionShows}" 
+         Background="Transparent">                            
+    <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:SelectableShow">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5">
+                
+                <CheckBox IsChecked="{Binding IsSelected, Mode=OneWay}"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSelectionCommand}"
+                          CommandParameter="{Binding Show.Id}" />
+                
+                <TextBlock Text="{Binding Show.Title}" VerticalAlignment="Center" Foreground="#1E1B13"/>
+                
+            </StackPanel>
+        </DataTemplate>
+    </ListBox.ItemTemplate>
+</ListBox>
                         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
                             <Button Content="Підтвердити видалення" Background="#BA1A1A" Foreground="#FFFFFF"
                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ConfirmDeletionCommand}"/>
@@ -65,25 +128,53 @@
                 </DataTemplate>
 
                 <DataTemplate DataType="states:UIState+Editor">
-                    <Border Background="#F4EDDF" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            BorderBrush="#CDC6B4" BorderThickness="1">
+                    <Border Background="#F4EDDF" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#CDC6B4" BorderThickness="1">
                         <StackPanel Spacing="15" Width="300">
                             <TextBlock Text="Редагування передачі" FontSize="20" FontWeight="Bold" Foreground="#6D5E0F" HorizontalAlignment="Center"/>
 
                             <TextBlock Text="Назва:" Foreground="#1E1B13"/>
                             <TextBox Text="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftTitle, Mode=TwoWay}" TabIndex="1"/>
+<TextBlock Text="Канал:" Foreground="#1E1B13"/>
+<Grid ColumnDefinitions="*, Auto">
+    <ComboBox Grid.Column="0" ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AvailableChannels}"
+              SelectedItem="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftChannel}"
+              HorizontalAlignment="Stretch" TabIndex="0">
+        <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="domain:TVChannel">
+                <TextBlock Text="{Binding Name}"/>
+            </DataTemplate>
+        </ComboBox.ItemTemplate>
+    </ComboBox>
+    
+    <Button Grid.Column="1" Content="+" Margin="10,0,0,0"
+            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleAddChannelCommand}"/>
+</Grid>
 
-                            <TextBlock Text="Тривалість:" Foreground="#1E1B13"/>
-<NumericUpDown Value="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftDurationMinutes, Mode=TwoWay}" 
-               Minimum="1" 
-               Maximum="600" 
-               Increment="5"
-               FormatString="0"
-               TabIndex="2"/>
+    <StackPanel IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsAddingChannel}" 
+                Orientation="Horizontal" Spacing="10" Margin="0,5,0,5">
+        <TextBox Text="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NewChannelName, Mode=TwoWay}" 
+                 PlaceholderText="Назва нового каналу" Width="180"/>
+        <Button Content="Додати" Background="#8A792A" Foreground="White"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SubmitNewChannelCommand}"/>
+    </StackPanel>
+    
+                            <TextBlock Text="Час початку:" Foreground="#1E1B13"/>
+                            <TimePicker SelectedTime="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftStartTimeOfDay, Mode=TwoWay}" 
+                                        HorizontalAlignment="Stretch" TabIndex="2"/>
+
+                            <TextBlock Text="Тривалість (хвилин):" Foreground="#1E1B13"/>
+                            <NumericUpDown Value="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftDurationMinutes}"
+                                           Minimum="1" Maximum="600" Increment="5" FormatString="0" TabIndex="3"/>
+                            
+                            <TextBlock Text="Жанр:" Foreground="#1E1B13"/>
+                            <ComboBox ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AvailableGenres}"
+                                      SelectedItem="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DraftGenre}"
+                                      HorizontalAlignment="Stretch" TabIndex="4"/>
+                            
                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
-                                <Button Content="Зберегти" Background="#6D5E0F" Foreground="#FFFFFF" TabIndex="3"
+                                <Button Content="Зберегти" Background="#6D5E0F" Foreground="#FFFFFF" TabIndex="4"
                                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SaveCommand}"/>
-                                <Button Content="Скасувати" TabIndex="4"
+                                <Button Content="Скасувати" TabIndex="5"
                                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CancelCommand}"/>
                             </StackPanel>
                         </StackPanel>
@@ -91,8 +182,7 @@
                 </DataTemplate>
 
                 <DataTemplate DataType="states:UIState+Error">
-                    <Border Background="#FFDAD6" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            BorderBrush="#BA1A1A" BorderThickness="1">
+                    <Border Background="#FFDAD6" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#BA1A1A" BorderThickness="1">
                         <StackPanel Spacing="15">
                             <TextBlock Text="Увага!" FontSize="24" FontWeight="Bold" Foreground="#BA1A1A"/>
                             <TextBlock Text="{Binding Message}" FontSize="16" TextWrapping="Wrap" MaxWidth="300" Foreground="#1E1B13"/>
@@ -104,16 +194,10 @@
 
             </ContentControl.DataTemplates>
         </ContentControl>
-        
+
         <Button Command="{Binding CreateNewShowCommand}"
-                Width="60" Height="60"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Margin="0,0,20,20"
-                Background="#6D5E0F"
-                Foreground="White"
-                FontSize="30"
-                Content="+"
+                Width="60" Height="60" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20"
+                Background="#6D5E0F" Foreground="White" FontSize="30" Content="+"
                 ToolTip.Tip="Додати нову передачу (Ctrl+N)">
             <Button.Styles>
                 <Style Selector="Button">
@@ -121,13 +205,11 @@
                     <Setter Property="VerticalContentAlignment" Value="Center"/>
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                 </Style>
-                <!-- Ефект при наведенні -->
                 <Style Selector="Button:pointerover /template/ ContentPresenter">
                     <Setter Property="Background" Value="#8A792A"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Style>
             </Button.Styles>
         </Button>
-        
     </Panel>
 </Window>
